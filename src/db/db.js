@@ -11,6 +11,10 @@ export const connectDB = async () => {
     );
   } catch (error) {
     console.log("MongoDB connection error :", error);
+    // Don't kill the process on Vercel serverless — throw so the request fails cleanly
+    if (process.env.VERCEL) {
+      throw error;
+    }
     process.exit(1);
   }
 };
