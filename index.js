@@ -4,16 +4,20 @@ import { app } from "./src/server.js";
 
 dotenv.config({ path: "./.env" });
 
-// Connect DB before handling requests (needed for Vercel cold starts)
-await connectDB();
-
-// Local / non-Vercel: start a normal HTTP server
+// Local development: connect DB then listen
 if (!process.env.VERCEL) {
-  const port = process.env.PORT || 8000;
-  app.listen(port, () => {
-    console.log(`server is running at port : ${port}`);
-  });
+  connectDB()
+    .then(() => {
+      const port = process.env.PORT || 8000;
+      app.listen(port, () => {
+        console.log(`server is running at port : ${port}`);
+      });
+    })
+    .catch((error) => {
+      console.log("MongoDB connection failed :", error);
+      process.exit(1);
+    });
 }
 
-// Vercel serverless: export the Express app as the handler
+// Vercel serverless handler — no top-level DB await (avoids FUNCTION_INVOCATION_FAILED)
 export default app;
